@@ -24,4 +24,16 @@ class OrderGroupRepository extends \Doctrine\ORM\EntityRepository
             ->getSingleScalarResult();
 
     }
+
+    function existingOrderUser($userId, $token) {
+        return $this->createQueryBuilder('g')
+            ->select('g')
+            ->innerJoin("g.orderUsers", "u")
+            ->where('u.id = :userid')
+            ->andWhere('g.token = :token')
+            ->setParameter('userid', $userId)
+            ->setParameter('token', $token)
+            ->getQuery()
+            ->getResult();
+    }
 }

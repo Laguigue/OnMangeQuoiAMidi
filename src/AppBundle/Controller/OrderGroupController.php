@@ -8,7 +8,6 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
-
 /**
  * OrderGroup controller.
  *
@@ -27,12 +26,28 @@ class OrderGroupController extends Controller
    {
      $token = $request->get('uid');
 
-     $em = $this->getDoctrine()->getManager();
-     $orderGroup = $em->getRepository('AppBundle:OrderGroup')->findOneByToken($token);
+     $user_id = $this->getUser()->getId();
 
-       return $this->render('place/order_create.html.twig', array(
-         'orderGroup' => $orderGroup
-       ));
+
+
+     $em = $this->getDoctrine()->getManager();
+
+       $orders = $em->getRepository('AppBundle:OrderUser')->existingOrderUser($user_id, $token);
+       var_dump($token);
+       die();
+       $orderGroup = $em->getRepository('AppBundle:OrderGroup')->findOneByToken($token);
+
+       if ($orders) {
+           return $this->render('place/order_create.html.twig', array(
+               'orderGroup' => $orderGroup,
+               'orders' => 'update'
+           ));
+       } else {
+           return $this->render('place/order_create.html.twig', array(
+               'orderGroup' => $orderGroup,
+           ));
+       }
+
      }
 
     /**

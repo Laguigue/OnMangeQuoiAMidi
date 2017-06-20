@@ -28,48 +28,55 @@ class OrderUserController extends Controller
   */
   public function createAction(Request $request)
   {
+
+
     $user = $this->getUser();
     $em = $this->getDoctrine()->getManager();
     $data = $request->get('order_user');
-    if($user){
-      $orderGroup = $em->getRepository('AppBundle:OrderGroup')->findOneByToken($data['order_group']);
+    $csrf = $request->get('_csrf_token');
 
-      $orderUser = new OrderUser();
-      $orderUser->setUser($user);
-      $orderUser->setOrderGroup($orderGroup);
-      $em->persist($orderUser);
+    if ($this->isCsrfTokenValid('token_id', $csrf)) {
+        if($user){
+            $orderGroup = $em->getRepository('AppBundle:OrderGroup')->findOneByToken($data['order_group']);
 
-      if(isset($data['meal'])){
-        foreach ($data['meal'] as $meal_id => $quantity) {
-          if($quantity){
-            $meal = $em->getRepository('AppBundle:Meal')->find($meal_id);
+            $orderUser = new OrderUser();
+            $orderUser->setUser($user);
+            $orderUser->setOrderGroup($orderGroup);
+            $em->persist($orderUser);
 
-            $orderMeal = new OrderMeal();
-            $orderMeal->setQuantity($quantity);
-            $orderMeal->setOrderUser($orderUser);
-            $orderMeal->setMeal($meal);
-            $em->persist($orderMeal);
-          }
+            if(isset($data['meal'])){
+                foreach ($data['meal'] as $meal_id => $quantity) {
+                    if($quantity){
+                        $meal = $em->getRepository('AppBundle:Meal')->find($meal_id);
+
+                        $orderMeal = new OrderMeal();
+                        $orderMeal->setQuantity($quantity);
+                        $orderMeal->setOrderUser($orderUser);
+                        $orderMeal->setMeal($meal);
+                        $em->persist($orderMeal);
+                    }
+                }
+            }
+            if(isset($data['menu'])){
+                foreach ($data['menu'] as $menu_id => $quantity) {
+                    if($quantity){
+                        $menu = $em->getRepository('AppBundle:Menu')->find($menu_id);
+
+                        $orderMenu = new OrderMenu();
+                        $orderMenu->setQuantity($quantity);
+                        $orderMenu->setOrderUser($orderUser);
+                        $orderMenu->setMenu($menu);
+                        $em->persist($orderMenu);
+                    }
+                }
+            }
+
+            $em->flush();
+            return $this->redirectToRoute('order_group_show', array('uid' => $data['order_group']));
+
         }
-      }
-      if(isset($data['menu'])){
-        foreach ($data['menu'] as $menu_id => $quantity) {
-          if($quantity){
-            $menu = $em->getRepository('AppBundle:Menu')->find($menu_id);
-
-            $orderMenu = new OrderMenu();
-            $orderMenu->setQuantity($quantity);
-            $orderMenu->setOrderUser($orderUser);
-            $orderMenu->setMenu($menu);
-            $em->persist($orderMenu);
-          }
-        }
-      }
-
-      $em->flush();
-      return $this->redirectToRoute('order_group_show', array('uid' => $data['order_group']));
-
     }
+
   }
 
 }
